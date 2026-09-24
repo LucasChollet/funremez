@@ -23,6 +23,7 @@
 #include <lol/math>
 
 #include "matrix.h"
+#include "rand.h"
 #include "solver.h"
 
 class Timer
@@ -341,7 +342,7 @@ void remez_solver::find_extrema()
 
         a.x = i == 0 ? (real)-1 : m_zeros[i - 1];
         b.x = i == m_order + 1 ? (real)1 : m_zeros[i];
-        c.x = a.x + (b.x - a.x) * real(lol::rand(0.4f, 0.6f));
+        c.x = a.x + (b.x - a.x) * real(rand(0.4f, 0.6f));
 
         a.err = eval_error(a.x);
         b.err = eval_error(b.x);
