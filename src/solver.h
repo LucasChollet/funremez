@@ -25,6 +25,7 @@
 #include <array>
 
 #include "expression.h"
+#include "ThreadQueue.h"
 
 enum class root_finder
 {
@@ -107,6 +108,6 @@ private:
 
     /* Threading information */
     std::vector<lol::thread *> m_workers;
-    lol::queue<int> m_questions, m_answers;
+    ThreadQueue<int> m_questions, m_answers;
 };
 
