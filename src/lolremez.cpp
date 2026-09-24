@@ -20,8 +20,9 @@
 #include <optional> // std::optional
 
 #include <lol/utils>
-#include <lol/cli>
 #include <lol/real>
+
+#include <CLI/CLI.hpp>
 
 #include "solver.h"
 #include "expression.h"
@@ -126,7 +127,7 @@ int main(int argc, char **argv)
 
     remez_solver solver;
 
-    lol::cli::app opts("lolremez");
+    CLI::App opts("lolremez");
     opts.set_version_flag("-V,--version", PACKAGE_VERSION);
     opts.footer(footer + bugs);
 
