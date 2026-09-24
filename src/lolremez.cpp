@@ -14,12 +14,15 @@
 #   include "config.h"
 #endif
 
+#include <cstdarg>
+#include <cstdio>
 #include <float.h>
 #include <iostream>
 #include <iomanip>
 #include <optional> // std::optional
+#include <string>
+#include <vector>
 
-#include <lol/utils>
 #include <lol/real>
 
 #include <CLI/CLI.hpp>
@@ -83,6 +86,19 @@ static void usage()
         << bugs;
 }
 #endif
+
+static std::vector<std::string> split(std::string const &s, char sep)
+{
+    std::vector<std::string> ret;
+    size_t start = 0, end = 0;
+    while ((end = s.find(sep, start)) != std::string::npos)
+    {
+        ret.push_back(s.substr(start, end - start));
+        start = end + 1;
+    }
+    ret.push_back(s.substr(start));
+    return ret;
+}
 
 static void FAIL(char const *message = nullptr, ...)
 {
@@ -166,7 +182,7 @@ int main(int argc, char **argv)
 
     if (range)
     {
-        auto arg = lol::split(*range, ':');
+        auto arg = split(*range, ':');
         if (arg.size() != 2)
             FAIL("invalid range");
         str_xmin = arg[0];
