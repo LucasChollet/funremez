@@ -18,12 +18,26 @@
 #include <iostream>
 #include <iomanip>
 #include <thread>
+#include <chrono>
 
 #include <lol/real>
 #include <lol/math>
 
 #include "matrix.h"
 #include "solver.h"
+
+class Timer
+{
+public:
+    Timer() { m_start = std::chrono::steady_clock::now(); }
+    float elapsed() const
+    {
+        auto now = std::chrono::steady_clock::now();
+        return std::chrono::duration_cast<std::chrono::duration<float>>(now - m_start).count();
+    }
+private:
+    std::chrono::steady_clock::time_point m_start;
+};
 
 using lol::real;
 
@@ -210,7 +224,7 @@ void remez_solver::remez_init()
  */
 void remez_solver::remez_step()
 {
-    timer t;
+    Timer t;
 
     /* Pick up x_i where error will be 0 and compute f(x_i) */
     std::vector<real> fxn;
@@ -254,7 +268,7 @@ void remez_solver::remez_step()
         error += system[m_order + 1][i] * fxn[i];
 
     if (show_stats)
-        std::cout << " -:- timing for inversion: " << (t.get() * 1000.f) << " ms\n";
+        std::cout << " -:- timing for inversion: " << (t.elapsed() * 1000.f) << " ms\n";
 }
 
 /*
@@ -265,7 +279,7 @@ void remez_solver::remez_step()
  */
 void remez_solver::find_zeros()
 {
-    timer t;
+    Timer t;
 
     /* Initialise an [a,b] bracket for each zero we try to find */
     for (int i = 0; i < m_order + 1; i++)
@@ -303,7 +317,7 @@ void remez_solver::find_zeros()
     }
 
     if (show_stats)
-        std::cout << " -:- timing for zeros: " << (t.get() * 1000.f) << " ms\n";
+        std::cout << " -:- timing for zeros: " << (t.elapsed() * 1000.f) << " ms\n";
 }
 
 
@@ -320,7 +334,7 @@ void remez_solver::find_zeros()
 // and golden ratio search and has superlinear convergence.
 void remez_solver::find_extrema()
 {
-    timer t;
+    Timer t;
 
     m_control[0] = -1;
     m_control[m_order + 1] = 1;
@@ -366,7 +380,7 @@ void remez_solver::find_extrema()
     }
 
     if (show_stats)
-        std::cout << " -:- timing for extrema: " << (t.get() * 1000.f) << " ms\n";
+        std::cout << " -:- timing for extrema: " << (t.elapsed() * 1000.f) << " ms\n";
 
     if (show_debug)
         std::cout << "[debug] error: " << std::setprecision(m_digits) << m_error << "\n";
