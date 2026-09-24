@@ -61,3 +61,5 @@ _ReSharper.*
 # Our binaries
 lolremez
 src/lolremez2d
+
+.idea
