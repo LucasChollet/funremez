@@ -11,6 +11,14 @@ FetchContent_Declare(CLI11
 )
 FetchContent_MakeAvailable(CLI11)
 
+FetchContent_Declare(PEGTL
+    URL https://github.com/taocpp/PEGTL/archive/refs/tags/3.0.0.tar.gz
+    URL_HASH SHA256=b47af025450f5c12251cd831f90deab666e18a8029f3dbffb32672b0450af902
+)
+set(PEGTL_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(PEGTL_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(PEGTL)
+
 add_executable(lolremez
     src/lolremez.cpp
     src/solver.cpp
@@ -18,4 +26,4 @@ add_executable(lolremez
 
 target_include_directories(lolremez PRIVATE lol/include)
 target_compile_definitions(lolremez PRIVATE PACKAGE_VERSION="0.7")
-target_link_libraries(lolremez PRIVATE CLI11::CLI11)
+target_link_libraries(lolremez PRIVATE CLI11::CLI11 taocpp::pegtl)
