@@ -12,8 +12,6 @@
 
 #pragma once
 
-using namespace lol;
-
 #include <cassert>
 
 /*
