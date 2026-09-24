@@ -17,7 +17,6 @@
 // ----------------------
 //
 
-#include <lol/math>
 #include <lol/real>
 
 #include <array>
@@ -25,6 +24,7 @@
 #include <vector>
 
 #include "expression.h"
+#include "polynomial.h"
 #include "ThreadQueue.h"
 
 enum class root_finder
@@ -60,7 +60,7 @@ public:
     void do_init();
     bool do_step();
 
-    lol::polynomial<lol::real> get_estimate() const;
+    polynomial<lol::real> get_estimate() const;
     lol::real get_error() const { return m_error; }
 
     bool show_stats = false;
@@ -91,7 +91,7 @@ private:
     root_finder m_rf = root_finder::pegasus;
 
     /* Solver state */
-    lol::polynomial<lol::real> m_estimate;
+    polynomial<lol::real> m_estimate;
 
     std::vector<lol::real> m_zeros;
     std::vector<lol::real> m_control;
