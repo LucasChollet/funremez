@@ -17,12 +17,12 @@
 // ----------------------
 //
 
-#include <lol/thread>
 #include <lol/math>
 #include <lol/real>
 
-#include <vector>
 #include <array>
+#include <thread>
+#include <vector>
 
 #include "expression.h"
 #include "ThreadQueue.h"
@@ -107,7 +107,7 @@ private:
     std::vector<std::array<point, 3>> m_extrema_state;
 
     /* Threading information */
-    std::vector<lol::thread *> m_workers;
+    std::vector<std::jthread> m_workers;
     ThreadQueue<int> m_questions, m_answers;
 };
 

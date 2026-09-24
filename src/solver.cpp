@@ -14,7 +14,6 @@
 #   include "config.h"
 #endif
 
-#include <functional>
 #include <iostream>
 #include <iomanip>
 #include <thread>
@@ -45,24 +44,17 @@ remez_solver::remez_solver()
 {
     /* Spawn worker threads */
     for (unsigned int i = 0; i < std::thread::hardware_concurrency(); ++i)
-    {
-        auto th = new thread(std::bind(&remez_solver::worker_thread, this));
-        m_workers.push_back(th);
-    }
+        m_workers.emplace_back([this] { worker_thread(); });
 }
 
 remez_solver::~remez_solver()
 {
-    /* Signal worker threads to quit, wait for worker threads to answer,
-     * and kill worker threads. */
-    for (auto worker : m_workers)
+    /* Signal worker threads to quit and wait for them to answer. */
+    for (auto &worker : m_workers)
         (void)worker, m_questions.push(-1);
 
-    for (auto worker : m_workers)
+    for (auto &worker : m_workers)
         (void)worker, m_answers.pop();
-
-    for (auto worker : m_workers)
-        delete worker;
 }
 
 void remez_solver::set_order(int order)
