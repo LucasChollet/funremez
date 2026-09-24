@@ -12,8 +12,8 @@ FetchContent_Declare(CLI11
 FetchContent_MakeAvailable(CLI11)
 
 FetchContent_Declare(PEGTL
-    URL https://github.com/taocpp/PEGTL/archive/refs/tags/3.0.0.tar.gz
-    URL_HASH SHA256=b47af025450f5c12251cd831f90deab666e18a8029f3dbffb32672b0450af902
+    URL https://github.com/taocpp/PEGTL/archive/refs/tags/3.2.9.tar.gz
+    URL_HASH SHA256=346aeb9644ce976fde499069403983d25e7b701914c6fac87c021cf04911627d
 )
 set(PEGTL_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(PEGTL_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
