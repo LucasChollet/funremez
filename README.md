@@ -55,7 +55,8 @@ Math functions:
  - *abs()* (absolute value)
  - *sqrt()* (square root), *cbrt()* (cubic root)
  - *exp()*, *exp2()*, *expm1()*, *erf()*, *erfc()*, *erfcx()*,
- - *log()*, *log2()*, *log10()*, *log1p()*
+ - *log()*, *log2()*, *log10()*, *log1p()*,
+ - *gamma()*, *lgamma()*
  - *sin()*, *cos()*, *tan()*
  - *asin()*, *acos()*, *atan()*
  - *sinh()*, *cosh()*, *tanh()*

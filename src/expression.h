@@ -45,6 +45,7 @@ enum class id : uint8_t
     sqrt, cbrt,
     exp, expm1, exp2, erf, erfc, erfcx,
     log, log1p, log2, log10,
+    gamma, lgamma,
     sin, cos, tan,
     asin, acos, atan,
     sinh, cosh, tanh,
@@ -119,6 +120,8 @@ struct expression
             case id::log1p: push_val(log1p(head)); break;
             case id::log2:  push_val(log2(head));  break;
             case id::log10: push_val(log10(head)); break;
+            case id::gamma: push_val(gamma(head)); break;
+            case id::lgamma: push_val(lgamma(head)); break;
             case id::sin:   push_val(sin(head));   break;
             case id::cos:   push_val(cos(head));   break;
             case id::tan:   push_val(tan(head));   break;
@@ -257,6 +260,8 @@ private:
                              TAO_PEGTL_STRING("erfcx"),
                              TAO_PEGTL_STRING("erfc"),
                              TAO_PEGTL_STRING("erf"),
+                             TAO_PEGTL_STRING("gamma"),
+                             TAO_PEGTL_STRING("lgamma"),
                              TAO_PEGTL_STRING("double"),
                              TAO_PEGTL_STRING("cbrt"),
                              TAO_PEGTL_STRING("cosh"),
@@ -433,6 +438,8 @@ struct expression::action<expression::r_unary_fun>
             { "log1p", id::log1p },
             { "log2",  id::log2 },
             { "log",   id::log },
+            { "gamma",  id::gamma },
+            { "lgamma", id::lgamma },
             { "sinh",  id::sinh },
             { "cosh",  id::cosh },
             { "tanh",  id::tanh },

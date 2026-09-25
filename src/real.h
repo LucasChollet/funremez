@@ -181,6 +181,8 @@ public:
     friend real log1p(real const &);
     friend real log2(real const &);
     friend real log10(real const &);
+    friend real gamma(real const &);
+    friend real lgamma(real const &);
     friend real sin(real const &);
     friend real cos(real const &);
     friend real tan(real const &);
@@ -212,6 +214,8 @@ inline real log(real const &x)  { real r; mpfr_log(r.m_v, x.m_v, MPFR_RNDN); ret
 inline real log1p(real const &x) { real r; mpfr_log1p(r.m_v, x.m_v, MPFR_RNDN); return r; }
 inline real log2(real const &x) { real r; mpfr_log2(r.m_v, x.m_v, MPFR_RNDN); return r; }
 inline real log10(real const &x) { real r; mpfr_log10(r.m_v, x.m_v, MPFR_RNDN); return r; }
+inline real lgamma(real const &x) { real r; mpfr_lngamma(r.m_v, x.m_v, MPFR_RNDN); return r; }
+inline real gamma(real const &x) { real r; mpfr_gamma(r.m_v, x.m_v, MPFR_RNDN); return r; }
 inline real sin(real const &x)  { real r; mpfr_sin(r.m_v, x.m_v, MPFR_RNDN); return r; }
 inline real cos(real const &x)  { real r; mpfr_cos(r.m_v, x.m_v, MPFR_RNDN); return r; }
 inline real tan(real const &x)  { real r; mpfr_tan(r.m_v, x.m_v, MPFR_RNDN); return r; }
