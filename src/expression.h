@@ -27,6 +27,8 @@
 #include <tuple>
 #include <cassert>
 
+#include "real.h"
+
 namespace grammar
 {
 
@@ -60,19 +62,19 @@ struct expression
     /*
      * Evaluate expression at x
      */
-    lol::real eval(lol::real const &x) const
+    real eval(real const &x) const
     {
         /* Use a stack */
-        std::vector<lol::real> stack;
+        std::vector<real> stack;
 
-        auto pop_val = [&stack]() -> lol::real
+        auto pop_val = [&stack]() -> real
         {
             auto ret = stack.back();
             stack.pop_back();
             return ret;
         };
 
-        auto push_val = [&stack](lol::real const &v) -> void
+        auto push_val = [&stack](real const &v) -> void
         {
             stack.push_back(v);
         };
@@ -97,7 +99,7 @@ struct expression
             }
 
             /* All other rules consume at least the head of the stack */
-            lol::real head = pop_val();
+            real head = pop_val();
 
             switch (std::get<0>(m_ops[i]))
             {
@@ -139,9 +141,9 @@ struct expression
             case id::mod:
             case id::fmod:  push_val(fmod(pop_val(), head)); break;
 
-            case id::tofloat:   push_val(lol::real(float(head))); break;
-            case id::todouble:  push_val(lol::real(double(head))); break;
-            case id::toldouble: push_val(lol::real(long_double(head))); break;
+            case id::tofloat:   push_val(real(float(head))); break;
+            case id::todouble:  push_val(real(double(head))); break;
+            case id::toldouble: push_val(real(long_double(head))); break;
 
             case id::x:
             case id::y:
@@ -170,7 +172,7 @@ struct expression
 private:
     std::vector<id> m_temp_op;
     std::vector<std::tuple<id, int>> m_ops;
-    std::vector<lol::real> m_constants;
+    std::vector<real> m_constants;
 
 private:
     struct r_expr;
@@ -466,12 +468,12 @@ struct expression::action<expression::r_sup_float>
     template<typename INPUT>
     static void apply(INPUT const &in, expression *that)
     {
-        lol::real val = lol::real::R_0();
+        real val = real::R_0();
 
         auto const &sup = in.string();
         for (char const *p = sup.c_str(); *p; )
         {
-            val *= lol::real::R_10();
+            val *= real::R_10();
 
             static char const *lut[] =
             {
@@ -482,7 +484,7 @@ struct expression::action<expression::r_sup_float>
             {
                 if (memcmp(p, lut[i], strlen(lut[i])) == 0)
                 {
-                    val += lol::real(i);
+                    val += real(i);
                     p += strlen(lut[i]);
                     break;
                 }
@@ -509,13 +511,13 @@ struct expression::action<expression::r_name>
         {
             that->m_ops.push_back(std::make_tuple(id::constant, (int)that->m_constants.size()));
             if (in.string() == "e")
-                that->m_constants.push_back(lol::real::R_E());
+                that->m_constants.push_back(real::R_E());
             else if (in.string() == "pi" || in.string() == "π")
-                that->m_constants.push_back(lol::real::R_PI());
+                that->m_constants.push_back(real::R_PI());
             else if (in.string() == "tau" || in.string() == "τ")
-                that->m_constants.push_back(lol::real::R_TAU());
+                that->m_constants.push_back(real::R_TAU());
             else /* FIXME: check if the constant is already in the list */
-                that->m_constants.push_back(lol::real(in.string().c_str()));
+                that->m_constants.push_back(real(in.string().c_str()));
         }
     }
 };

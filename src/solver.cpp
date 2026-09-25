@@ -19,9 +19,7 @@
 #include <thread>
 #include <chrono>
 
-#include <lol/real>
-#include <lol/math>
-
+#include "real.h"
 #include "matrix.h"
 #include "rand.h"
 #include "solver.h"
@@ -38,8 +36,6 @@ public:
 private:
     std::chrono::steady_clock::time_point m_start;
 };
-
-using lol::real;
 
 remez_solver::remez_solver()
 {

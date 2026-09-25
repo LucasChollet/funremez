@@ -1,5 +1,0 @@
-[submodule "lol"]
-	path = lol
-	url = https://github.com/lolengine/lol.git
-	branch = master
-	update = merge

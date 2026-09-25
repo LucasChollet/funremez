@@ -17,7 +17,7 @@
 // ----------------------
 //
 
-#include <lol/real>
+#include "real.h"
 
 #include <array>
 #include <thread>
@@ -50,7 +50,7 @@ public:
 
     void set_order(int order);
     void set_digits(int digits);
-    void set_range(lol::real xmin, lol::real xmax);
+    void set_range(real xmin, real xmax);
     void set_func(expression const &expr);
     void set_weight(expression const &expr);
     void set_root_finder(root_finder rf);
@@ -60,8 +60,8 @@ public:
     void do_init();
     bool do_step();
 
-    polynomial<lol::real> get_estimate() const;
-    lol::real get_error() const { return m_error; }
+    polynomial<real> get_estimate() const;
+    real get_error() const { return m_error; }
 
     bool show_stats = false;
     bool show_debug = false;
@@ -75,32 +75,32 @@ private:
 
     void worker_thread();
 
-    lol::real eval_estimate(lol::real const &x);
-    lol::real eval_func(lol::real const &x);
-    lol::real eval_weight(lol::real const &x);
-    lol::real eval_error(lol::real const &x);
+    real eval_estimate(real const &x);
+    real eval_func(real const &x);
+    real eval_weight(real const &x);
+    real eval_error(real const &x);
 
 private:
     /* User-defined parameters */
     expression m_func, m_weight;
-    lol::real m_xmin = -lol::real::R_1();
-    lol::real m_xmax = +lol::real::R_1();
+    real m_xmin = -real::R_1();
+    real m_xmax = +real::R_1();
     int m_order = 4;
     int m_digits = 40;
     bool m_has_weight = false;
     root_finder m_rf = root_finder::pegasus;
 
     /* Solver state */
-    polynomial<lol::real> m_estimate;
+    polynomial<real> m_estimate;
 
-    std::vector<lol::real> m_zeros;
-    std::vector<lol::real> m_control;
+    std::vector<real> m_zeros;
+    std::vector<real> m_control;
 
-    lol::real m_k1, m_k2, m_epsilon, m_error;
+    real m_k1, m_k2, m_epsilon, m_error;
 
     struct point
     {
-        lol::real x, err;
+        real x, err;
     };
 
     std::vector<std::array<point, 3>> m_zeros_state;

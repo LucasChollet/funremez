@@ -23,14 +23,11 @@
 #include <string>
 #include <vector>
 
-#include <lol/real>
-
 #include <CLI/CLI.hpp>
 
+#include "real.h"
 #include "solver.h"
 #include "expression.h"
-
-using lol::real;
 
 static std::string copyright =
     "Copyright © 2005–2022 Sam Hocevar <sam@hocevar.net>\n"
@@ -197,7 +194,7 @@ int main(int argc, char **argv)
     }
 
     // Initialise solver: ranges
-    lol::real xmin, xmax;
+    real xmin, xmax;
     expression ex;
 
     if (!ex.parse(str_xmin))

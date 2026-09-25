@@ -19,11 +19,13 @@ set(PEGTL_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(PEGTL_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(PEGTL)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(MPFR REQUIRED IMPORTED_TARGET mpfr)
+
 add_executable(lolremez
     src/lolremez.cpp
     src/solver.cpp
 )
 
-target_include_directories(lolremez PRIVATE lol/include)
 target_compile_definitions(lolremez PRIVATE PACKAGE_VERSION="0.7")
-target_link_libraries(lolremez PRIVATE CLI11::CLI11 taocpp::pegtl)
+target_link_libraries(lolremez PRIVATE CLI11::CLI11 taocpp::pegtl PkgConfig::MPFR)
