@@ -66,6 +66,18 @@ Parsing rules:
  - *-a^b* is *-(a^b)*
  - *a^b^c* is *(a^b)^c*
 
+## Relative error
+
+By default the solver minimizes the absolute error `|f(x)-p(x)|`. Pass
+`--relative-error` to minimize the relative error `|f(x)-p(x)|/|f(x)|` instead:
+
+```sh
+lolremez --double -d 5 -r "sqrt(2):pi²" --relative-error "atan(sqrt(3+x³)-exp(1+x))"
+```
+
+This is a shortcut for using the expression as its own weight function, i.e.
+`lolremez --double -d 5 -r "sqrt(2):pi²" "atan(...)" "atan(...)"`.
+
 ## Limitations
 
 As of now, the `erf()` family of function is inaccurate in the [7,19] range.

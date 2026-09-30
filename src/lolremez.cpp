@@ -132,6 +132,7 @@ int main(int argc, char **argv)
     bool show_progress = false;
     bool show_debug = false;
     bool no_checks = false;
+    bool relative_error = false;
 
     std::string expr;
     std::optional<std::string> error, range;
@@ -147,6 +148,7 @@ int main(int argc, char **argv)
     // Approximation parameters
     opts.add_option("-d,--degree", degree, "degree of final polynomial")->type_name("<int>");
     opts.add_option("-r,--range", range, "range over which to approximate")->type_name("<xmin>:<xmax>");
+    opts.add_flag("--relative-error", relative_error, "minimise the relative error |f(x)-p(x)|/|f(x)|");
     // Precision parameters
     opts.add_option("-p,--precision", bits, "floating-point precision (default 512)")->type_name("<int>");
     opts.add_flag("--float", [&](int64_t) { mode = mode_float; }, "use float type");
@@ -169,6 +171,9 @@ int main(int argc, char **argv)
     opts.add_option("error", error)->type_name("<x-expression>");
 
     CLI11_PARSE(opts, argc, argv);
+
+    if (relative_error && error)
+        FAIL("--relative-error cannot be combined with a weight function");
 
     if (degree)
     {
@@ -233,6 +238,10 @@ int main(int argc, char **argv)
 
         solver.set_weight(ex);
     }
+    else if (relative_error)
+    {
+        solver.set_weight(ex);
+    }
 
     // https://en.wikipedia.org/wiki/Floating-point_arithmetic#Internal_representation
     int digits = mode == mode_float ? FLT_DIG + 2 :
@@ -278,7 +287,9 @@ int main(int argc, char **argv)
     char const *type = mode == mode_float ? "float" :
                        mode == mode_double ? "double" : "long double";
     std::cout << "// Degree " << p.degree() << " approximation of f(x) = " << expr << '\n';
-    if (error)
+    if (relative_error)
+        std::cout << "// with relative error\n";
+    else if (error)
         std::cout << "// with weight function g(x) = " << *error << '\n';
     std::cout << "// on interval [ " << str_xmin << ", " << str_xmax << " ]\n";
 
