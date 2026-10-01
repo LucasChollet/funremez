@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
+set(CLI11_PRECOMPILED ON CACHE BOOL "Use CLI11 as a static library" FORCE)
 FetchContent_Declare(CLI11
     URL https://github.com/CLIUtils/CLI11/archive/refs/tags/v2.7.2.tar.gz
     URL_HASH SHA256=46eef3101da70852ec7af026e09d485ccee81813331c8c6052d39344443b83da
