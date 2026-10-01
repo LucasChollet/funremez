@@ -348,23 +348,7 @@ public:
     /*
      * Parse arithmetic expression in x, e.g. 2*x+3
      */
-    bool parse(std::string const &str)
-    {
-        m_ops.clear();
-        m_constants.clear();
-
-        tao::pegtl::memory_input<> in(str, "expression");
-        try
-        {
-            tao::pegtl::parse<r_stmt, action>(in, this);
-            return true;
-        }
-        catch (const tao::pegtl::parse_error &ex)
-        {
-            printf("parse error: %s\n", ex.what());
-            return false;
-        }
-    }
+    bool parse(std::string const &str);
 };
 
 //
