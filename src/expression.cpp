@@ -10,10 +10,348 @@
 //  See http://www.wtfpl.net/ for more details.
 //
 
+
 #include "expression.h"
+#include <map>
+#include <tao/pegtl.hpp>
 
 namespace grammar
 {
+
+using namespace tao::pegtl;
+
+
+struct grammar
+{
+    struct r_expr;
+
+    // r_ <- <blank> *
+    struct _ : star<space> {};
+
+    // r_float <- <digit> + ( "." <digit> * ) ? ( ( [eE] [+-] ? <digit> + ) ?
+    struct r_float : seq<plus<digit>,
+                         opt<seq<one<'.'>,
+                                 star<digit>>>,
+                         opt<seq<one<'e', 'E'>,
+                                 opt<one<'+', '-'>>,
+                                 plus<digit>>>> {};
+
+    // r_hex_float <- "0" [xX] <xdigit> + ( "." <xdigit> * ) ? ( ( [pP] [+-] ? <digit> + ) ?
+    struct r_hex_float : seq<one<'0'>,
+                             one<'x', 'X'>,
+                             plus<xdigit>,
+                             opt<seq<one<'.'>,
+                                     star<xdigit>>>,
+                             opt<seq<one<'p', 'P'>,
+                                     opt<one<'+', '-'>>,
+                                     plus<digit>>>> {};
+
+    // r_sup_digit <- "⁰" / "¹" / "²" / "³" / "⁴" / "⁵" / "⁶" / "⁷" / "⁸" / "⁹"
+    struct r_sup_digit : sor<TAO_PEGTL_STRING("⁰"),
+                             TAO_PEGTL_STRING("¹"),
+                             TAO_PEGTL_STRING("²"),
+                             TAO_PEGTL_STRING("³"),
+                             TAO_PEGTL_STRING("⁴"),
+                             TAO_PEGTL_STRING("⁵"),
+                             TAO_PEGTL_STRING("⁶"),
+                             TAO_PEGTL_STRING("⁷"),
+                             TAO_PEGTL_STRING("⁸"),
+                             TAO_PEGTL_STRING("⁹")> {};
+
+    // r_sup_float <- <r_sup_digit> +
+    struct r_sup_float : plus<r_sup_digit> {};
+
+    // r_name <- r_hex_float / r_float / "x" / "y" / "e" / "pi" / "π" / "tau" / "τ"
+    struct r_name : sor<r_hex_float,
+                        r_float,
+                        TAO_PEGTL_STRING("x"),
+                        TAO_PEGTL_STRING("y"),
+                        TAO_PEGTL_STRING("e"),
+                        TAO_PEGTL_STRING("pi"),
+                        TAO_PEGTL_STRING("π"),
+                        TAO_PEGTL_STRING("tau"),
+                        TAO_PEGTL_STRING("τ")> {};
+
+    // r_binary_call <- <r_binary_fun> "(" r_expr "," r_expr ")"
+    struct r_binary_fun : sor<TAO_PEGTL_STRING("atan2"),
+                              TAO_PEGTL_STRING("pow"),
+                              TAO_PEGTL_STRING("min"),
+                              TAO_PEGTL_STRING("max"),
+                              TAO_PEGTL_STRING("fmod")> {};
+
+    struct r_binary_call : seq<r_binary_fun,
+                               _, one<'('>,
+                               _, r_expr,
+                               _, one<','>,
+                               _, r_expr,
+                               _, one<')'>> {};
+
+    // r_unary_call <- <r_unary_fun> "(" r_expr ")"
+    // XXX: “log2” must come before “log” etc. because the parser exits early.
+    struct r_unary_fun : sor<TAO_PEGTL_STRING("tanh"),
+                             TAO_PEGTL_STRING("tan"),
+                             TAO_PEGTL_STRING("sqrt"),
+                             TAO_PEGTL_STRING("sinh"),
+                             TAO_PEGTL_STRING("sin"),
+                             TAO_PEGTL_STRING("log2"),
+                             TAO_PEGTL_STRING("log10"),
+                             TAO_PEGTL_STRING("log1p"),
+                             TAO_PEGTL_STRING("log"),
+                             TAO_PEGTL_STRING("ldouble"),
+                             TAO_PEGTL_STRING("float"),
+                             TAO_PEGTL_STRING("exp2"),
+                             TAO_PEGTL_STRING("expm1"),
+                             TAO_PEGTL_STRING("exp"),
+                             TAO_PEGTL_STRING("erfcx"),
+                             TAO_PEGTL_STRING("erfc"),
+                             TAO_PEGTL_STRING("erf"),
+                             TAO_PEGTL_STRING("gamma"),
+                             TAO_PEGTL_STRING("lgamma"),
+                             TAO_PEGTL_STRING("double"),
+                             TAO_PEGTL_STRING("cbrt"),
+                             TAO_PEGTL_STRING("cosh"),
+                             TAO_PEGTL_STRING("cos"),
+                             TAO_PEGTL_STRING("asin"),
+                             TAO_PEGTL_STRING("atan"),
+                             TAO_PEGTL_STRING("acos"),
+                             TAO_PEGTL_STRING("abs")> {};
+
+    struct r_unary_call : seq<r_unary_fun,
+                              _, one<'('>,
+                              _, r_expr,
+                              _, one<')'>> {};
+
+    // r_call <- r_binary_call / r_unary_call
+    struct r_call : sor<r_binary_call,
+                        r_unary_call> {};
+
+    // r_parentheses <- "(" r_expr ")"
+    struct r_parentheses : seq<one<'('>,
+                               pad<r_expr, space>,
+                               one<')'>> {};
+
+    // r_terminal <- ( r_call / r_name / r_parentheses ) r_sup_float ?
+    struct r_terminal : seq<sor<r_call,
+                                r_name,
+                                r_parentheses>,
+                            _, opt<r_sup_float>> {};
+
+    // r_signed <- "-" r_signed / "+" r_signed / r_terminal
+    struct r_signed;
+    struct r_negative : seq<one<'-'>, _, r_signed> {};
+    struct r_signed : sor<r_negative,
+                          seq<one<'+'>, _, r_signed>,
+                          r_terminal> {};
+
+    // r_pow <- ( "^" / "**" ) r_signed
+    struct r_pow : seq<pad<sor<one<'^'>,
+                               string<'*', '*'>>, space>,
+                       r_signed> {};
+
+    // r_factor <- r_terminal ( r_pow ) *
+    struct r_factor : seq<r_terminal,
+                          star<r_pow>> {};
+
+    // r_signed2 <- "-" r_signed2 / "+" r_signed2 / r_factor
+    struct r_signed2;
+    struct r_negative2 : seq<one<'-'>, _, r_signed2> {};
+    struct r_signed2 : sor<r_negative2,
+                           seq<one<'+'>, _, r_signed2>,
+                           r_factor> {};
+
+    // r_mul <- "*" r_signed2
+    // r_div <- "/" r_signed2
+    // r_mod <- "%" r_signed2
+    // r_term <- r_signed2 ( r_mul / r_div / r_mod ) *
+    struct r_mul : seq<_, one<'*'>, _, r_signed2> {};
+    struct r_div : seq<_, one<'/'>, _, r_signed2> {};
+    struct r_mod : seq<_, one<'%'>, _, r_signed2> {};
+    struct r_term : seq<r_signed2,
+                        star<sor<r_mul, r_div, r_mod>>> {};
+
+    // r_add <- "+" r_term
+    // r_sub <- "-" r_term
+    // r_expr <- r_term ( r_add / r_sub ) *
+    struct r_add : seq<_, one<'+'>, _, r_term> {};
+    struct r_sub : seq<_, one<'-'>, _, r_term> {};
+    struct r_expr : seq<r_term,
+                        star<sor<r_add, r_sub>>> {};
+
+    // r_stmt <- r_expr <end>
+    struct r_stmt : must<pad<r_expr, space>, tao::pegtl::eof> {};
+
+    //
+    // Default actions
+    //
+
+    template<typename R>
+    struct action : nothing<R> {};
+
+    template<id OP>
+    struct generic_action
+    {
+        static void apply0(State& state)
+        {
+            state.ops.push_back(std::make_tuple(OP, -1));
+        }
+    };
+};
+
+//
+// Rule specialisations for simple operators
+//
+
+template<> struct grammar::action<grammar::r_pow> : generic_action<id::pow> {};
+template<> struct grammar::action<grammar::r_mul> : generic_action<id::mul> {};
+template<> struct grammar::action<grammar::r_div> : generic_action<id::div> {};
+template<> struct grammar::action<grammar::r_mod> : generic_action<id::mod> {};
+template<> struct grammar::action<grammar::r_add> : generic_action<id::add> {};
+template<> struct grammar::action<grammar::r_sub> : generic_action<id::sub> {};
+template<> struct grammar::action<grammar::r_negative> : generic_action<id::minus> {};
+template<> struct grammar::action<grammar::r_negative2> : generic_action<id::minus> {};
+
+//
+// Rule specialisations for unary and binary function calls
+//
+
+template<>
+struct grammar::action<grammar::r_binary_call>
+{
+    template<typename INPUT>
+    static void apply(INPUT const &in, State& state)
+    {
+        struct { id ret; char const *name; } lut[] =
+        {
+            { id::atan2, "atan2" },
+            { id::pow,   "pow" },
+            { id::min,   "min" },
+            { id::max,   "max" },
+            { id::fmod,  "fmod" },
+        };
+
+        for (auto pair : lut)
+        {
+            if (strncmp(in.string().c_str(), pair.name, strlen(pair.name)) != 0)
+                continue;
+
+            state.ops.push_back(std::make_tuple(pair.ret, -1));
+            return;
+        }
+    }
+};
+
+template<>
+struct grammar::action<grammar::r_unary_fun>
+{
+    template<typename INPUT>
+    static void apply(INPUT const &in, State& state)
+    {
+        static std::map<std::string, id> lut =
+        {
+            { "abs",   id::abs },
+            { "sqrt",  id::sqrt },
+            { "cbrt",  id::cbrt },
+            { "expm1", id::expm1 },
+            { "exp2",  id::exp2 },
+            { "exp",   id::exp },
+            { "erfcx", id::erfcx },
+            { "erfc",  id::erfc },
+            { "erf",   id::erf },
+            { "log10", id::log10 },
+            { "log1p", id::log1p },
+            { "log2",  id::log2 },
+            { "log",   id::log },
+            { "gamma",  id::gamma },
+            { "lgamma", id::lgamma },
+            { "sinh",  id::sinh },
+            { "cosh",  id::cosh },
+            { "tanh",  id::tanh },
+            { "sin",   id::sin },
+            { "cos",   id::cos },
+            { "tan",   id::tan },
+            { "asin",  id::asin },
+            { "acos",  id::acos },
+            { "atan",  id::atan },
+            { "float",   id::tofloat },
+            { "double",  id::todouble },
+            { "ldouble", id::toldouble },
+        };
+
+        state.temp_op.push_back(lut[in.string()]);
+    }
+};
+
+template<>
+struct grammar::action<grammar::r_unary_call>
+{
+    template<typename INPUT>
+    static void apply(INPUT const &, State& state)
+    {
+        state.ops.push_back(std::make_tuple(state.temp_op.back(), -1));
+        state.temp_op.pop_back();
+    }
+};
+
+template<>
+struct grammar::action<grammar::r_sup_float>
+{
+    template<typename INPUT>
+    static void apply(INPUT const &in, State& state)
+    {
+        real val = real::R_0();
+
+        auto const &sup = in.string();
+        for (char const *p = sup.c_str(); *p; )
+        {
+            val *= real::R_10();
+
+            static char const *lut[] =
+            {
+                "⁰", "¹", "²", "³", "⁴", "⁵", "⁶", "⁷", "⁸", "⁹",
+            };
+
+            for (int i = 0; i < 10; ++i)
+            {
+                if (memcmp(p, lut[i], strlen(lut[i])) == 0)
+                {
+                    val += real(i);
+                    p += strlen(lut[i]);
+                    break;
+                }
+            }
+        }
+
+        state.ops.push_back(std::make_tuple(id::constant, (int)state.constants.size()));
+        state.constants.push_back(val);
+        state.ops.push_back(std::make_tuple(id::pow, -1));
+    }
+};
+
+template<>
+struct grammar::action<grammar::r_name>
+{
+    template<typename INPUT>
+    static void apply(INPUT const &in, State& state)
+    {
+        if (in.string() == "x")
+            state.ops.push_back(std::make_tuple(id::x, -1));
+        else if (in.string() == "y")
+            state.ops.push_back(std::make_tuple(id::y, -1));
+        else
+        {
+            state.ops.push_back(std::make_tuple(id::constant, (int)state.constants.size()));
+            if (in.string() == "e")
+                state.constants.push_back(real::R_E());
+            else if (in.string() == "pi" || in.string() == "π")
+                state.constants.push_back(real::R_PI());
+            else if (in.string() == "tau" || in.string() == "τ")
+                state.constants.push_back(real::R_TAU());
+            else /* FIXME: check if the constant is already in the list */
+                state.constants.push_back(real(in.string().c_str()));
+        }
+    }
+};
+
 
 using long_double = long double;
 
@@ -34,29 +372,29 @@ real expression::eval(real const& x) const
         stack.push_back(v);
     };
 
-    for (size_t i = 0; i < m_ops.size(); ++i)
+    for (size_t i = 0; i < m_state.ops.size(); ++i)
     {
         /* Rules that do not consume stack elements */
-        if (std::get<0>(m_ops[i]) == id::x)
+        if (std::get<0>(m_state.ops[i]) == id::x)
         {
             push_val(x);
             continue;
         }
-        else if (std::get<0>(m_ops[i]) == id::y)
+        else if (std::get<0>(m_state.ops[i]) == id::y)
         {
             push_val(0); // TODO
             continue;
         }
-        else if (std::get<0>(m_ops[i]) == id::constant)
+        else if (std::get<0>(m_state.ops[i]) == id::constant)
         {
-            push_val(m_constants[std::get<1>(m_ops[i])]);
+            push_val(m_state.constants[std::get<1>(m_state.ops[i])]);
             continue;
         }
 
         /* All other rules consume at least the head of the stack */
         real head = pop_val();
 
-        switch (std::get<0>(m_ops[i]))
+        switch (std::get<0>(m_state.ops[i]))
         {
         case id::plus: push_val(head);
             break;
@@ -154,7 +492,7 @@ real expression::eval(real const& x) const
 
 bool expression::is_constant() const
 {
-    for (auto const& op : m_ops)
+    for (auto const& op : m_state.ops)
         if (std::get<0>(op) == id::x)
             return false;
 
@@ -163,13 +501,13 @@ bool expression::is_constant() const
 
 bool expression::parse(std::string const& str)
 {
-    m_ops.clear();
-    m_constants.clear();
+    m_state.ops.clear();
+    m_state.constants.clear();
 
     tao::pegtl::memory_input<> in(str, "expression");
     try
     {
-        tao::pegtl::parse<r_stmt, action>(in, this);
+        tao::pegtl::parse<grammar::r_stmt, grammar::action>(in, m_state);
         return true;
     }
     catch (const tao::pegtl::parse_error& ex)
