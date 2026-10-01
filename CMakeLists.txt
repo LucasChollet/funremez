@@ -23,6 +23,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(MPFR REQUIRED IMPORTED_TARGET mpfr)
 
 add_executable(funremez
+    src/expression.cpp
     src/funremez.cpp
     src/solver.cpp
 )

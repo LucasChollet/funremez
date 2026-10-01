@@ -163,14 +163,7 @@ struct expression
     /*
      * Is expression constant? i.e. does not depend on x
      */
-    bool is_constant() const
-    {
-        for (auto const &op : m_ops)
-            if (std::get<0>(op) == id::x)
-                return false;
-
-        return true;
-    }
+    bool is_constant() const;
 
 private:
     std::vector<id> m_temp_op;
