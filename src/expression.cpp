@@ -15,6 +15,8 @@
 namespace grammar
 {
 
+using long_double = long double;
+
 real expression::eval(real const& x) const
 {
     /* Use a stack */

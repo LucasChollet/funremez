@@ -33,7 +33,6 @@ namespace grammar
 {
 
 using namespace tao::pegtl;
-using long_double = long double;
 
 enum class id : uint8_t
 {
