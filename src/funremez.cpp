@@ -10,10 +10,6 @@
 //  See http://www.wtfpl.net/ for more details.
 //
 
-#if HAVE_CONFIG_H
-#   include "config.h"
-#endif
-
 #include <cstdarg>
 #include <cstdio>
 #include <float.h>
@@ -48,41 +44,6 @@ static std::string bugs =
     "\n"
     "Written by Sam Hocevar. Report bugs to the issue page:\n"
     "https://github.com/LucasChollet/funremez/issues\n";
-
-// FIXME: improve --version output by maybe reusing this function
-#if 0
-static void version()
-{
-    std::cout
-        << "lolremez " << PACKAGE_VERSION << "\n"
-        << "\n"
-        << copyright
-        << bugs;
-}
-#endif
-
-// FIXME: improve --help output by maybe adding some messages
-#if 0
-static void usage()
-{
-    std::cout
-        << "Usage: lolremez [-d degree] [-r xmin:xmax] x-expression [x-error]\n"
-        << "       lolremez -h | --help\n"
-        << "       lolremez -V | --version\n" 
-        << "Find a polynomial approximation for x-expression.\n"
-        << "\n"
-        << "Mandatory arguments to long options are mandatory for short options too.\n"
-        << "  -d, --degree <degree>      degree of final polynomial\n"
-        << "  -r, --range <xmin>:<xmax>  range over which to approximate\n"
-        << "  -p, --precision <bits>     floating-point precision (default 512)\n"
-        << "      --progress             print progress\n"
-        << "      --stats                print timing statistics\n"
-        << "  -h, --help                 display this help and exit\n"
-        << "  -V, --version              output version information and exit\n"
-        << footer
-        << bugs;
-}
-#endif
 
 static std::vector<std::string> split(std::string const &s, char sep)
 {
