@@ -39,15 +39,15 @@ static std::string copyright =
 static std::string footer =
     "\n"
     "Examples:\n"
-    "  lolremez --degree 4 --range -1:1 \"atan(exp(1+x))\"\n"
-    "  lolremez --degree 4 --range -1:1 \"atan(exp(1+x))\" \"exp(1+x)\"\n"
+    "  funremez --degree 4 --range -1:1 \"atan(exp(1+x))\"\n"
+    "  funremez --degree 4 --range -1:1 \"atan(exp(1+x))\" \"exp(1+x)\"\n"
     "\n"
     "Tutorial available on https://github.com/samhocevar/lolremez/wiki\n";
 
 static std::string bugs =
     "\n"
-    "Written by Sam Hocevar. Report bugs to <sam@hocevar.net> or to the\n"
-    "issue page: https://github.com/samhocevar/lolremez/issues\n";
+    "Written by Sam Hocevar. Report bugs to the issue page:\n"
+    "https://github.com/LucasChollet/funremez/issues\n";
 
 // FIXME: improve --version output by maybe reusing this function
 #if 0
@@ -108,7 +108,7 @@ static void FAIL(char const *message = nullptr, ...)
         va_end(ap);
         printf("\n");
     }
-    printf("Try 'lolremez --help' for more information.\n");
+    printf("Try 'funremez --help' for more information.\n");
     exit(EXIT_FAILURE);
 }
 
@@ -142,7 +142,7 @@ int main(int argc, char **argv)
 
     remez_solver solver;
 
-    CLI::App opts("lolremez");
+    CLI::App opts("funremez");
     opts.set_version_flag("-V,--version", PACKAGE_VERSION);
     opts.footer(footer + bugs);
 

@@ -1,4 +1,9 @@
-# LolRemez
+# FunRemez
+
+This is a fork of [lolremez](https://github.com/samhocevar/lolremez), that uses MPFR instead of the lol backend.
+Props to the original author for this amazing tool.
+
+Disclaimer: I mainly used an AI tool to do the work here. 
 
 A Remez algorithm implementation to approximate functions using polynomials.
 
@@ -11,7 +16,7 @@ Build instructions are available below.
 Approximate `atan(sqrt(3+x³)-exp(1+x))` over the range `[sqrt(2),pi²]` with a 5th degree polynomial for `double` floats:
 
 ```sh
-lolremez --double -d 5 -r "sqrt(2):pi²" "atan(sqrt(3+x³)-exp(1+x))"
+funremez --double -d 5 -r "sqrt(2):pi²" "atan(sqrt(3+x³)-exp(1+x))"
 ```
 
 Result:
@@ -72,76 +77,33 @@ By default the solver minimizes the absolute error `|f(x)-p(x)|`. Pass
 `--relative-error` to minimize the relative error `|f(x)-p(x)|/|f(x)|` instead:
 
 ```sh
-lolremez --double -d 5 -r "sqrt(2):pi²" --relative-error "atan(sqrt(3+x³)-exp(1+x))"
+funremez --double -d 5 -r "sqrt(2):pi²" --relative-error "atan(sqrt(3+x³)-exp(1+x))"
 ```
 
 This is a shortcut for using the expression as its own weight function, i.e.
-`lolremez --double -d 5 -r "sqrt(2):pi²" "atan(...)" "atan(...)"`.
+`funremez --double -d 5 -r "sqrt(2):pi²" "atan(...)" "atan(...)"`.
 
-## Limitations
+## Build FunRemez
 
-As of now, the `erf()` family of function is inaccurate in the [7,19] range.
-See [this issue](https://github.com/lolengine/lol/issues/2)
-
-## Build LolRemez
-
-### Setup
-
-If you got the source code from Git, make sure the submodules are properly initialised:
-
-    git submodule update --init --recursive
-
-On Windows, just open `lolremez.sln` in Visual Studio.
-
-On Linux, make sure the following packages are installed:
-
-    automake autoconf libtool pkg-config
+Make sure you have a C++20 compiler, CMake and MPFR installed.
 
 ### Compile
 
-On Windows, just build the solution in Visual Studio.
-
-On Linux, bootstrap the project and configure it:
-
-    ./bootstrap
-    ./configure
-
-Finally, build the project:
-
-    make
-
-The resulting executable is `lolremez`. You can manually copy it to any
-installation location, or run the following:
-
-    sudo make install
-
-## Docker
-
-A docker image can easily be built using the provided [Dockerfile](./Dockerfile)
+This is a standard CMake project, for a release build, you can use:
 
 ```bash
-docker build -t lolremez .
-```
-This command will create a local Docker image "lolremez", you can the invoke `lolremez` as follows:
-
-```
-docker run --rm lolremez --double -d 5 -r "sqrt(2):pi²" "atan(sqrt(3+x³)-exp(1+x))"
-// Approximation of f(x) = atan(sqrt(3+x³)-exp(1+x))
-// on interval [ sqrt(2), pi² ]
-// with a polynomial of degree 5.
-// p(x)=((((-3.9557569330471555e-5*x+1.2947712130833294e-3)*x-1.6541397035559147e-2)*x+1.0351664953941214e-1)*x-3.2051562487328135e-1)*x-1.1703528319321961
-double f(double x)
-{
-    double u = -3.9557569330471555e-5;
-    u = u * x + 1.2947712130833294e-3;
-    u = u * x + -1.6541397035559147e-2;
-    u = u * x + 1.0351664953941214e-1;
-    u = u * x + -3.2051562487328135e-1;
-    return u * x + -1.1703528319321961;
-}
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release .
+ninja -C build
 ```
 
 ## Changes
+
+### News for head
+ - Fetch external dependencies directly instead of through lol.
+ - Use MPFR as the math backend instead of lol and drop the lol dependencies.
+ - Implement *gamma()* and *lgamma()*
+
+---Fork happened here---
 
 ### News for LolRemez 0.7:
 
