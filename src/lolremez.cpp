@@ -133,6 +133,7 @@ int main(int argc, char **argv)
     bool show_debug = false;
     bool no_checks = false;
     bool relative_error = false;
+    bool array_coefficients = false;
 
     std::string expr;
     std::optional<std::string> error, range;
@@ -162,6 +163,7 @@ int main(int argc, char **argv)
     opts.add_flag("--ford", [&](int64_t) { rf = root_finder::ford; }, "root finding: use Ford algorithm");
     // Runtime flags
     opts.add_flag("--hex", display_hex, "print hexadecimal numbers");
+    opts.add_flag("--array-coefficients", array_coefficients, "store the coefficients in a static array instead of inlining them");
     opts.add_flag("--progress", show_progress, "print progress");
     opts.add_flag("--stats", show_stats, "print timing statistics");
     opts.add_flag("--debug", show_debug, "print debug messages");
@@ -310,6 +312,28 @@ int main(int argc, char **argv)
     std::cout << type << " f(" << type << " x)\n{\n";
     if (display_hex)
         std::cout << std::hexfloat;
+
+    auto print_coefficient = [&](real const &r)
+    {
+        switch (mode)
+        {
+            case mode_float: std::cout << float(r) << 'f'; break;
+            case mode_double: std::cout << double(r); break;
+            case mode_long_double: std::cout << (long double)r << 'l'; break;
+        }
+    };
+
+    if (array_coefficients)
+    {
+        std::cout << "    static " << type << " const c[] = {\n        ";
+        for (int j = 0; j <= p.degree(); ++j)
+        {
+            print_coefficient(p[j]);
+            std::cout << (j < p.degree() ? ", " : "\n");
+        }
+        std::cout << "    };\n";
+    }
+
     for (int j = p.degree(); j >= 0; --j)
     {
         char const *a = j ? "u = u * x +" : "return u * x +";
@@ -317,12 +341,10 @@ int main(int argc, char **argv)
             std::cout << "    " << type << " u = ";
         else
             std::cout << "    " << a << " ";
-        switch (mode)
-        {
-            case mode_float: std::cout << float(p[j]) << 'f'; break;
-            case mode_double: std::cout << double(p[j]); break;
-            case mode_long_double: std::cout << (long double)p[j] << 'l'; break;
-        }
+        if (array_coefficients)
+            std::cout << "c[" << j << "]";
+        else
+            print_coefficient(p[j]);
         std::cout << ";\n";
     }
     std::cout << "}\n";
